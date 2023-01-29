@@ -1,9 +1,15 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"syscall"
 )
+
+func printlnAndShutdown(args ...any) {
+	fmt.Println(args...)
+	powerOff()
+}
 
 func powerOff() {
 	syscall.Sync()

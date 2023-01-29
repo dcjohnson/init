@@ -1,15 +1,10 @@
 package main
 
 import (
-	// "bufio"
-	// "strings"
+	"github.com/dcjohnson/init/config"
+	"github.com/dcjohnson/init/spawn"
 	"fmt"
-	// "os"
 	"time"
-)
-
-const (
-	fstab = "/etc/fstab"
 )
 
 func main() {
@@ -27,14 +22,14 @@ func main() {
 		powerOff()
 	}
 
-	// byts, err := os.ReadFile("/proc/self/mounts")
-	// if err != nil {
-	// 	fmt.Println("err:", err.Error())
-	// } else {
-	// 	fmt.Printf("\n/proc/self/mounts:\n%s", string(byts))
-	// }
+	fmt.Println("Parsing Configuration")
+	c, err := config.ParseConfiguration()
+	if err != nil {
+		printlnAndShutdown("Error parsing configuration:", err.Error())
+	}
 
-	// writeCrap()
+	fmt.Println("Spawning user shell")
+	spawn.ForkAndExec(c.Shell)
 
 	for {
 		time.Sleep(time.Second)
@@ -42,17 +37,3 @@ func main() {
 
 	powerOff()
 }
-
-// func writeCrap() {
-// 	err := os.Mkdir("/crap", 0666)
-// 	if err != nil {
-// 		fmt.Println("error making crapdir:", err.Error())
-// 	}
-
-// 	f, err := os.Create("/crap/crapfile")
-// 	if err != nil {
-// 		fmt.Println("error making crapfile:", err.Error())
-// 	}
-
-// 	f.Write([]byte("This is crap!"))
-// }
