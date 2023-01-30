@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/dcjohnson/init/config"
 	"github.com/dcjohnson/init/spawn"
-	"fmt"
+	// "log"
+	"os"
+	"syscall"
 	"time"
 )
 
@@ -11,15 +14,19 @@ func main() {
 	fmt.Println("Remounting rootfs")
 	err := remountRootFs()
 	if err != nil {
-		fmt.Println("Error remounting rootfs:", err.Error())
-		powerOff()
+		printlnAndShutdown("Error remounting rootfs:", err.Error())
 	}
 
 	fmt.Println("Mounting /proc")
 	err = proc()
 	if err != nil {
-		fmt.Println("Error mounting proc:", err.Error())
-		powerOff()
+		printlnAndShutdown("Error mounting proc:", err.Error())
+	}
+
+	fmt.Println("Mounting /dev/pts")
+	err = devpts()
+	if err != nil {
+		printlnAndShutdown("Error mounting dev:", err.Error())
 	}
 
 	fmt.Println("Parsing Configuration")
@@ -29,7 +36,23 @@ func main() {
 	}
 
 	fmt.Println("Spawning user shell")
-	spawn.ForkAndExec(c.Shell)
+	fmt.Println("Exec'ing path:", c.Shell)
+	f, err := os.Open("/dev/ptmx")
+	if err != nil {
+		printlnAndShutdown("Failed opening /dev/ptmx:", err.Error())
+	}
+
+	spawn.ForkAndExec(c.Shell, &syscall.ProcAttr{
+		Files: []uintptr{
+			0, 1, 2,
+		},
+		Sys: &syscall.SysProcAttr{
+			Ctty:       int(f.Fd()),
+			Noctty:     false,
+			Foreground: true,
+			Setpgid:    true,
+		},
+	})
 
 	for {
 		time.Sleep(time.Second)
