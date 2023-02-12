@@ -26,17 +26,23 @@ func proc() error {
 }
 
 func devpts() error {
-	err := os.Mkdir("/dev", 0666)
-	if err != nil && !os.IsExist(err) {
-		return err
-	}
-	err = os.Mkdir("/dev/pts", 0666)
+	err := os.Mkdir("/dev/pts", 0666)
 	if err != nil && !os.IsExist(err) {
 		return err
 	}
 
 	return syscall.Mount("devpts", "/dev/pts", "devpts", 0, "")
 }
+
+func dev() error {
+	err := os.Mkdir("/dev", 0666)
+	if err != nil && !os.IsExist(err) {
+		return err
+	}
+
+	return syscall.Mount("-", "/dev", "devtmpfs", 0, "")
+}
+
 
 func remountRootFs() error {
 	return syscall.Mount("/dev/root", "/", "", syscall.MS_REMOUNT, "")
